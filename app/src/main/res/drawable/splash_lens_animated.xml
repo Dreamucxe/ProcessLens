@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Section 51: "a subtle lens animation" that must not delay startup. The whole
+  sequence is 900 ms and matches windowSplashScreenAnimationDuration; the splash
+  is dismissed by MainActivity as soon as the first real frame is ready, so this
+  is an upper bound rather than an enforced wait.
+
+  The ring draws on with trimPathEnd, the aperture scales up, and the three nodes
+  fade in — no bounce, no spin, nothing that reads as a loading spinner.
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_lens">
+
+    <target android:name="ring">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="trimPathEnd"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:duration="620"
+                    android:interpolator="@android:interpolator/decelerate_quint" />
+                <objectAnimator
+                    android:propertyName="strokeAlpha"
+                    android:valueFrom="0.35"
+                    android:valueTo="1"
+                    android:duration="620" />
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="aperture_group">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.4" android:valueTo="1"
+                    android:startOffset="260" android:duration="440"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0.4" android:valueTo="1"
+                    android:startOffset="260" android:duration="440"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="aperture">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator
+                android:propertyName="fillAlpha"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="260" android:duration="380" />
+        </aapt:attr>
+    </target>
+
+    <target android:name="nodes_group">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0.86" android:valueTo="1"
+                    android:startOffset="520" android:duration="360"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0.86" android:valueTo="1"
+                    android:startOffset="520" android:duration="360"
+                    android:interpolator="@android:interpolator/decelerate_cubic" />
+            </set>
+        </aapt:attr>
+    </target>
+
+    <target android:name="node_top">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator android:propertyName="fillAlpha"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="520" android:duration="300" />
+        </aapt:attr>
+    </target>
+    <target android:name="node_right">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator android:propertyName="fillAlpha"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="600" android:duration="300" />
+        </aapt:attr>
+    </target>
+    <target android:name="node_left">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator android:propertyName="fillAlpha"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="600" android:duration="300" />
+        </aapt:attr>
+    </target>
+
+    <target android:name="spoke_top">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator android:propertyName="trimPathEnd"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="440" android:duration="320"
+                android:interpolator="@android:interpolator/decelerate_cubic" />
+        </aapt:attr>
+    </target>
+    <target android:name="spoke_right">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator android:propertyName="trimPathEnd"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="500" android:duration="320"
+                android:interpolator="@android:interpolator/decelerate_cubic" />
+        </aapt:attr>
+    </target>
+    <target android:name="spoke_left">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:animation">
+            <objectAnimator android:propertyName="trimPathEnd"
+                android:valueFrom="0" android:valueTo="1"
+                android:startOffset="500" android:duration="320"
+                android:interpolator="@android:interpolator/decelerate_cubic" />
+        </aapt:attr>
+    </target>
+</animated-vector>

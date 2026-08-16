@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      ProcessLens observes the system; it never uploads anything. There is no
+      INTERNET permission on purpose (Section 29: no backend, no telemetry, no
+      hidden network calls). Removing it makes the privacy claim structurally
+      enforced rather than a promise: the process cannot open a socket at all.
+    -->
+
+    <!--
+      Per-app network byte counts from NetworkStatsManager are "usage" data and
+      require this appop-backed permission, which the user grants through
+      Settings > Special app access > Usage access. It also unlocks
+      UsageStatsManager, which is how process/app state is observed from API 28
+      onward now that ActivityManager.getRunningAppProcesses() only returns our
+      own process.
+    -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Wi-Fi/mobile interface state and connection changes (Section 18). -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      READ_PHONE_STATE is what NetworkStatsManager requires to attribute mobile
+      (as opposed to Wi-Fi) traffic to a subscriber on API 26-28. It is requested
+      at runtime only when the user opens per-app mobile stats (Section 41), and
+      the app degrades to Wi-Fi-only figures when denied.
+    -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
+    <!--
+      QUERY_ALL_PACKAGES: from API 30 package visibility is filtered, and an app
+      inspector that can only see a curated subset would silently under-report.
+      Declared with maxSdkVersion-free scope because it is the app's core
+      function (system diagnostics), and the limitation is surfaced in the
+      capability matrix when it is not held.
+    -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <!-- The investigation recorder runs as a foreground service so sampling is
+         not killed while the user leaves the app (Section 14/24). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Battery temperature/voltage come from BatteryManager broadcasts; stats
+         require no permission, but battery-optimisation state does. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Shizuku declares its permission in its own manifest; we request it at runtime. -->
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+
+    <queries>
+        <!-- Shizuku/Sui, so its installed-but-stopped state can be distinguished
+             from not-installed even under API 30+ package filtering. -->
+        <package android:name="moe.shizuku.privileged.api" />
+        <package android:name="moe.shizuku.manager" />
+    </queries>
+
+    <application
+        android:name=".ProcessLensApplication"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ProcessLens.Splash"
+        tools:targetApi="34">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|fontScale"
+            android:theme="@style/Theme.ProcessLens.Splash"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".core.system.InvestigationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Exports are handed to other apps through a content URI, never a
+             file:// path, so no storage permission is needed on any API level. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <!--
+            Shizuku's binder receiver, found by authority rather than by class name.
+
+            Points at ProcessLens' own subclass, not rikka.shizuku.ShizukuProvider: Android
+            builds every declared provider while the process starts, before any application
+            code runs, so a provider that throws kills the app on launch. The subclass
+            catches that. Guarded by a signature-level permission so only the system side
+            can reach it.
+        -->
+        <provider
+            android:name=".core.system.ShizukuStartupProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"
+            tools:ignore="ExportedContentProvider" />
+    </application>
+</manifest>

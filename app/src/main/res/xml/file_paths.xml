@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Investigation exports (JSON/CSV/TXT) are written here and shared by URI. -->
+    <cache-path name="exports" path="exports/" />
+</paths>

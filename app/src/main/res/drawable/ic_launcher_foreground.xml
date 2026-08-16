@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The ProcessLens mark: a minimal lens ring with three process nodes on its
+  circumference, feeding a central aperture. Pure geometry, no raster assets, so
+  it stays crisp at every density and needs no per-dpi mipmaps.
+
+  Adaptive-icon foreground is 108x108dp with only the centre 66dp guaranteed
+  visible under any mask, so every element here stays inside r=33 of centre.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Soft glow behind the lens (Section 50: subtle glow, minimal geometry). -->
+    <path android:pathData="M 54,24 a 30,30 0 1,0 0,60 a 30,30 0 1,0 0,-60 z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="54"
+                android:gradientRadius="30">
+                <item android:offset="0.55" android:color="#00566CF0" />
+                <item android:offset="0.86" android:color="#38566CF0" />
+                <item android:offset="1.0" android:color="#00566CF0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Lens ring -->
+    <path
+        android:pathData="M 28,54 a 26,26 0 1,0 52,0 a 26,26 0 1,0 -52,0 z"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="28" android:startY="28"
+                android:endX="80" android:endY="80">
+                <item android:offset="0" android:color="#FF7C93FF" />
+                <item android:offset="1" android:color="#FF3F51C4" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Connectors from the aperture out to each node -->
+    <group>
+        <path android:pathData="M 54,42 L 54,32.5"
+            android:strokeColor="#FF5B72E8" android:strokeWidth="2.2" android:strokeLineCap="round" />
+        <path android:pathData="M 64.4,60 L 72.6,64.8"
+            android:strokeColor="#FF5B72E8" android:strokeWidth="2.2" android:strokeLineCap="round" />
+        <path android:pathData="M 43.6,60 L 35.4,64.8"
+            android:strokeColor="#FF5B72E8" android:strokeWidth="2.2" android:strokeLineCap="round" />
+    </group>
+
+    <!-- Aperture / pupil -->
+    <path
+        android:pathData="M 44,54 a 10,10 0 1,0 20,0 a 10,10 0 1,0 -20,0 z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="50.5" android:centerY="50.5"
+                android:gradientRadius="13">
+                <item android:offset="0" android:color="#FFA8B8FF" />
+                <item android:offset="1" android:color="#FF4356CC" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Process nodes seated on the ring -->
+    <path android:pathData="M 49.5,28 a 4.5,4.5 0 1,0 9,0 a 4.5,4.5 0 1,0 -9,0 z"
+        android:fillColor="#FFE8ECFF" />
+    <path android:pathData="M 72,67 a 4.5,4.5 0 1,0 9,0 a 4.5,4.5 0 1,0 -9,0 z"
+        android:fillColor="#FF8FA3FF" />
+    <path android:pathData="M 27,67 a 4.5,4.5 0 1,0 9,0 a 4.5,4.5 0 1,0 -9,0 z"
+        android:fillColor="#FF8FA3FF" />
+</vector>

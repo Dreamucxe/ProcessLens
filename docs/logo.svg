@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128"
+     role="img" aria-label="ProcessLens">
+  <title>ProcessLens</title>
+
+  <!--
+    A lens held over a sampled trace. The bars inside the glass are the readings the
+    app can actually take; the short dash among them is a reading the platform will
+    not give up, which the app draws as absent rather than as a zero.
+
+    Colours are the app's own: Palette.Ink / Surface2 / Outline and the default
+    AccentColor.INDIGO seed. Pure geometry, no embedded fonts or raster.
+  -->
+
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14171F"/>
+      <stop offset="1" stop-color="#07080C"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#5B72E8" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#5B72E8" stop-opacity="0.06"/>
+    </linearGradient>
+    <clipPath id="lens">
+      <circle cx="54" cy="52" r="27"/>
+    </clipPath>
+  </defs>
+
+  <rect x="2" y="2" width="124" height="124" rx="30" fill="url(#tile)"/>
+  <rect x="2.75" y="2.75" width="122.5" height="122.5" rx="29.25"
+        fill="none" stroke="#2A2F3C" stroke-width="1.5"/>
+
+  <!-- The trace, only visible through the glass. -->
+  <g clip-path="url(#lens)">
+    <circle cx="54" cy="52" r="27" fill="url(#glass)"/>
+    <g fill="#8E9DF0">
+      <rect x="34" y="56" width="6" height="14" rx="2"/>
+      <rect x="44" y="44" width="6" height="26" rx="2"/>
+      <rect x="54" y="50" width="6" height="20" rx="2"/>
+      <rect x="74" y="34" width="6" height="36" rx="2"/>
+    </g>
+    <!-- Restricted, not zero: a dash where the third bar would be. -->
+    <rect x="63" y="66" width="8" height="3.5" rx="1.75" fill="#6F7788"/>
+    <path d="M30 70h48" stroke="#2A2F3C" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Lens rim and handle. -->
+  <circle cx="54" cy="52" r="27" fill="none" stroke="#5B72E8" stroke-width="6"/>
+  <path d="M74.5 71.5 L97 94" stroke="#5B72E8" stroke-width="10" stroke-linecap="round"/>
+  <path d="M45 36a20 20 0 0 0-11 12" stroke="#C3CCF7" stroke-opacity="0.55"
+        stroke-width="3.5" stroke-linecap="round" fill="none"/>
+</svg>
