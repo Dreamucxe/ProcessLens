@@ -1,0 +1,772 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "5abd0837a7f516b9efa915eb8fa931a2",
+    "entities": [
+      {
+        "tableName": "investigations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `startedAt` INTEGER NOT NULL, `endedAt` INTEGER, `state` TEXT NOT NULL, `targetPackage` TEXT, `accessLevel` TEXT NOT NULL, `apiLevel` INTEGER NOT NULL, `deviceModel` TEXT NOT NULL, `sampleIntervalMillis` INTEGER NOT NULL, `notes` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAt",
+            "columnName": "startedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endedAt",
+            "columnName": "endedAt",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetPackage",
+            "columnName": "targetPackage",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "accessLevel",
+            "columnName": "accessLevel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "apiLevel",
+            "columnName": "apiLevel",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "deviceModel",
+            "columnName": "deviceModel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sampleIntervalMillis",
+            "columnName": "sampleIntervalMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_investigations_startedAt",
+            "unique": false,
+            "columnNames": [
+              "startedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_investigations_startedAt` ON `${TABLE_NAME}` (`startedAt`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "investigation_events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `investigationId` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `type` TEXT NOT NULL, `severity` TEXT NOT NULL, `title` TEXT NOT NULL, `detail` TEXT NOT NULL, `evidence` TEXT NOT NULL, `processName` TEXT, `packageName` TEXT, `value` REAL, `previousValue` REAL, FOREIGN KEY(`investigationId`) REFERENCES `investigations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "investigationId",
+            "columnName": "investigationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "severity",
+            "columnName": "severity",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "detail",
+            "columnName": "detail",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "evidence",
+            "columnName": "evidence",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "processName",
+            "columnName": "processName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "previousValue",
+            "columnName": "previousValue",
+            "affinity": "REAL",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_investigation_events_investigationId",
+            "unique": false,
+            "columnNames": [
+              "investigationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_investigation_events_investigationId` ON `${TABLE_NAME}` (`investigationId`)"
+          },
+          {
+            "name": "index_investigation_events_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_investigation_events_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "investigations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "investigationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "process_snapshots",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `investigationId` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `cpuPercent` REAL, `cpuProvenance` TEXT NOT NULL, `memoryUsedBytes` INTEGER NOT NULL, `memoryAvailableBytes` INTEGER NOT NULL, `batteryLevel` INTEGER NOT NULL, `batteryTemperatureDeciCelsius` INTEGER, `isCharging` INTEGER NOT NULL, `isScreenOn` INTEGER NOT NULL, `networkRxBytes` INTEGER, `networkTxBytes` INTEGER, `ownCpuPercent` REAL, `ownMemoryBytes` INTEGER, `entries` TEXT NOT NULL, `processCount` INTEGER NOT NULL, `discoveryMethod` TEXT NOT NULL, FOREIGN KEY(`investigationId`) REFERENCES `investigations`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "investigationId",
+            "columnName": "investigationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cpuPercent",
+            "columnName": "cpuPercent",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cpuProvenance",
+            "columnName": "cpuProvenance",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "memoryUsedBytes",
+            "columnName": "memoryUsedBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "memoryAvailableBytes",
+            "columnName": "memoryAvailableBytes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "batteryLevel",
+            "columnName": "batteryLevel",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "batteryTemperatureDeciCelsius",
+            "columnName": "batteryTemperatureDeciCelsius",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isCharging",
+            "columnName": "isCharging",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isScreenOn",
+            "columnName": "isScreenOn",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "networkRxBytes",
+            "columnName": "networkRxBytes",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "networkTxBytes",
+            "columnName": "networkTxBytes",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ownCpuPercent",
+            "columnName": "ownCpuPercent",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "ownMemoryBytes",
+            "columnName": "ownMemoryBytes",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "entries",
+            "columnName": "entries",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "processCount",
+            "columnName": "processCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "discoveryMethod",
+            "columnName": "discoveryMethod",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_process_snapshots_investigationId",
+            "unique": false,
+            "columnNames": [
+              "investigationId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_snapshots_investigationId` ON `${TABLE_NAME}` (`investigationId`)"
+          },
+          {
+            "name": "index_process_snapshots_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_process_snapshots_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "investigations",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "investigationId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "application_profiles",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `packageName` TEXT NOT NULL, `label` TEXT NOT NULL, `firstObservedAt` INTEGER NOT NULL, `lastObservedAt` INTEGER NOT NULL, `observationCount` INTEGER NOT NULL, `cpuSampleCount` INTEGER NOT NULL, `cpuAverage` REAL, `cpuPeak` REAL, `memorySampleCount` INTEGER NOT NULL, `memoryAverageBytes` INTEGER, `memoryPeakBytes` INTEGER, `foregroundMillis` INTEGER, `wakeLockCount` INTEGER, `networkBytes` INTEGER, `notes` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "packageName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstObservedAt",
+            "columnName": "firstObservedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastObservedAt",
+            "columnName": "lastObservedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "observationCount",
+            "columnName": "observationCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cpuSampleCount",
+            "columnName": "cpuSampleCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cpuAverage",
+            "columnName": "cpuAverage",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cpuPeak",
+            "columnName": "cpuPeak",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "memorySampleCount",
+            "columnName": "memorySampleCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "memoryAverageBytes",
+            "columnName": "memoryAverageBytes",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "memoryPeakBytes",
+            "columnName": "memoryPeakBytes",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "foregroundMillis",
+            "columnName": "foregroundMillis",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "wakeLockCount",
+            "columnName": "wakeLockCount",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "networkBytes",
+            "columnName": "networkBytes",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_application_profiles_packageName",
+            "unique": true,
+            "columnNames": [
+              "packageName"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_application_profiles_packageName` ON `${TABLE_NAME}` (`packageName`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "favorites",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` TEXT NOT NULL, `key` TEXT NOT NULL, `label` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "key",
+            "columnName": "key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "label",
+            "columnName": "label",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_favorites_type_key",
+            "unique": true,
+            "columnNames": [
+              "type",
+              "key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_favorites_type_key` ON `${TABLE_NAME}` (`type`, `key`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "user_settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `themeMode` TEXT NOT NULL DEFAULT 'DARK', `accentColor` TEXT NOT NULL DEFAULT 'INDIGO', `useDynamicColor` INTEGER NOT NULL DEFAULT 0, `glassEffectEnabled` INTEGER NOT NULL DEFAULT 1, `animationIntensity` TEXT NOT NULL DEFAULT 'FULL', `reducedMotion` INTEGER NOT NULL DEFAULT 0, `hapticsEnabled` INTEGER NOT NULL DEFAULT 1, `highContrast` INTEGER NOT NULL DEFAULT 0, `refreshRate` TEXT NOT NULL DEFAULT 'TWO_SECONDS', `cpuPollingEnabled` INTEGER NOT NULL DEFAULT 1, `memoryPollingEnabled` INTEGER NOT NULL DEFAULT 1, `batteryPollingEnabled` INTEGER NOT NULL DEFAULT 1, `networkPollingEnabled` INTEGER NOT NULL DEFAULT 1, `processListPollMultiplier` INTEGER NOT NULL DEFAULT 2, `defaultDurationMinutes` INTEGER NOT NULL DEFAULT 5, `cpuWarningThreshold` INTEGER NOT NULL DEFAULT 50, `cpuCriticalThreshold` INTEGER NOT NULL DEFAULT 80, `memoryIncreaseWarningMb` INTEGER NOT NULL DEFAULT 500, `batteryTemperatureWarningDeciCelsius` INTEGER NOT NULL DEFAULT 400, `automaticEventDetection` INTEGER NOT NULL DEFAULT 1, `investigationSampleIntervalMillis` INTEGER NOT NULL DEFAULT 2000, `localOnlyMode` INTEGER NOT NULL DEFAULT 1, `includeSystemAppsInExport` INTEGER NOT NULL DEFAULT 1, `exportFormat` TEXT NOT NULL DEFAULT 'JSON', `shizukuEnabled` INTEGER NOT NULL DEFAULT 1, `rootEnabled` INTEGER NOT NULL DEFAULT 0, `showOwnResourceUsage` INTEGER NOT NULL DEFAULT 1, `showSystemProcesses` INTEGER NOT NULL DEFAULT 1, `onboardingCompleted` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "themeMode",
+            "columnName": "themeMode",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'DARK'"
+          },
+          {
+            "fieldPath": "accentColor",
+            "columnName": "accentColor",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'INDIGO'"
+          },
+          {
+            "fieldPath": "useDynamicColor",
+            "columnName": "useDynamicColor",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "glassEffectEnabled",
+            "columnName": "glassEffectEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "animationIntensity",
+            "columnName": "animationIntensity",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'FULL'"
+          },
+          {
+            "fieldPath": "reducedMotion",
+            "columnName": "reducedMotion",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "hapticsEnabled",
+            "columnName": "hapticsEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "highContrast",
+            "columnName": "highContrast",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "refreshRate",
+            "columnName": "refreshRate",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'TWO_SECONDS'"
+          },
+          {
+            "fieldPath": "cpuPollingEnabled",
+            "columnName": "cpuPollingEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "memoryPollingEnabled",
+            "columnName": "memoryPollingEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "batteryPollingEnabled",
+            "columnName": "batteryPollingEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "networkPollingEnabled",
+            "columnName": "networkPollingEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "processListPollMultiplier",
+            "columnName": "processListPollMultiplier",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "2"
+          },
+          {
+            "fieldPath": "defaultDurationMinutes",
+            "columnName": "defaultDurationMinutes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "5"
+          },
+          {
+            "fieldPath": "cpuWarningThreshold",
+            "columnName": "cpuWarningThreshold",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "50"
+          },
+          {
+            "fieldPath": "cpuCriticalThreshold",
+            "columnName": "cpuCriticalThreshold",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "80"
+          },
+          {
+            "fieldPath": "memoryIncreaseWarningMb",
+            "columnName": "memoryIncreaseWarningMb",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "500"
+          },
+          {
+            "fieldPath": "batteryTemperatureWarningDeciCelsius",
+            "columnName": "batteryTemperatureWarningDeciCelsius",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "400"
+          },
+          {
+            "fieldPath": "automaticEventDetection",
+            "columnName": "automaticEventDetection",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "investigationSampleIntervalMillis",
+            "columnName": "investigationSampleIntervalMillis",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "2000"
+          },
+          {
+            "fieldPath": "localOnlyMode",
+            "columnName": "localOnlyMode",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "includeSystemAppsInExport",
+            "columnName": "includeSystemAppsInExport",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "exportFormat",
+            "columnName": "exportFormat",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'JSON'"
+          },
+          {
+            "fieldPath": "shizukuEnabled",
+            "columnName": "shizukuEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "rootEnabled",
+            "columnName": "rootEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "showOwnResourceUsage",
+            "columnName": "showOwnResourceUsage",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "showSystemProcesses",
+            "columnName": "showSystemProcesses",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "onboardingCompleted",
+            "columnName": "onboardingCompleted",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5abd0837a7f516b9efa915eb8fa931a2')"
+    ]
+  }
+}

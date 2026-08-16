@@ -1,0 +1,19 @@
+# Gradle
+.gradle/
+build/
+local.properties
+.kotlin/
+
+# Signing material — never commit real keys.
+keystore.properties
+*.keystore
+*.jks
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Build output
+/ProcessLens.apk
+captures/

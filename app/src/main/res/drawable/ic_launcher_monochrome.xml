@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon (API 33+) variant: single-colour geometry, no gradients, so the
+     launcher can tint it against the user's wallpaper palette. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="#FFFFFFFF">
+    <path
+        android:pathData="M 28,54 a 26,26 0 1,0 52,0 a 26,26 0 1,0 -52,0 z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round" />
+    <path android:pathData="M 54,42 L 54,32.5"
+        android:strokeColor="#FFFFFFFF" android:strokeWidth="2.2" android:strokeLineCap="round" />
+    <path android:pathData="M 64.4,60 L 72.6,64.8"
+        android:strokeColor="#FFFFFFFF" android:strokeWidth="2.2" android:strokeLineCap="round" />
+    <path android:pathData="M 43.6,60 L 35.4,64.8"
+        android:strokeColor="#FFFFFFFF" android:strokeWidth="2.2" android:strokeLineCap="round" />
+    <path android:pathData="M 44,54 a 10,10 0 1,0 20,0 a 10,10 0 1,0 -20,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M 49.5,28 a 4.5,4.5 0 1,0 9,0 a 4.5,4.5 0 1,0 -9,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M 72,67 a 4.5,4.5 0 1,0 9,0 a 4.5,4.5 0 1,0 -9,0 z"
+        android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M 27,67 a 4.5,4.5 0 1,0 9,0 a 4.5,4.5 0 1,0 -9,0 z"
+        android:fillColor="#FFFFFFFF" />
+</vector>

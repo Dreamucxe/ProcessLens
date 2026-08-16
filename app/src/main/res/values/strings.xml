@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ProcessLens</string>
+    <string name="app_tagline">System Intelligence</string>
+
+    <!-- Navigation -->
+    <string name="nav_overview">Overview</string>
+    <string name="nav_processes">Processes</string>
+    <string name="nav_investigate">Investigate</string>
+    <string name="nav_apps">Apps</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Foreground service -->
+    <string name="notification_channel_recording">Investigation recording</string>
+    <string name="notification_channel_recording_description">Shown while ProcessLens is recording an investigation. No sound, no vibration.</string>
+    <string name="notification_recording_title">Investigation running</string>
+    <string name="notification_recording_starting">Starting to sample…</string>
+    <plurals name="notification_recording_samples">
+        <item quantity="one">%1$d sample · %2$d events</item>
+        <item quantity="other">%1$d samples · %2$d events</item>
+    </plurals>
+
+    <!-- Common actions -->
+    <string name="action_stop">Stop</string>
+    <string name="action_start">Start</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_export">Export</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_save">Save</string>
+    <string name="action_open_settings">Open Android settings</string>
+    <string name="action_details">Technical details</string>
+    <string name="action_show_more">Show more</string>
+    <string name="action_show_less">Show less</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="action_got_it">Got it</string>
+
+    <!-- Availability, honesty states (Section 42) -->
+    <string name="not_available">Not available</string>
+    <string name="unavailable_platform">Android does not expose this to normal applications on this device.</string>
+    <string name="unavailable_permission">A permission is required before this can be read.</string>
+    <string name="unavailable_device">This device does not report this value.</string>
+    <string name="unavailable_elevated">Requires Shizuku or root access.</string>
+    <string name="unavailable_api">This Android version does not provide this information.</string>
+    <string name="unavailable_read_failed">Could not be read on this device.</string>
+    <string name="awaiting_second_sample">Measuring…</string>
+    <string name="awaiting_second_sample_detail">CPU usage is a rate, so it needs two samples. The first figure appears after the next refresh.</string>
+    <string name="source_label">Source: %1$s</string>
+
+    <!-- Overview -->
+    <string name="overview_title">Overview</string>
+    <string name="overview_access_level">Access level</string>
+    <string name="overview_recent_events">Recent activity</string>
+    <string name="overview_no_events">No recorded events yet. Run an investigation to build a timeline.</string>
+    <string name="overview_own_usage">ProcessLens itself</string>
+    <string name="overview_own_usage_detail">This app is measured the same way as everything it observes.</string>
+    <string name="overview_device">Device</string>
+
+    <!-- Stat labels -->
+    <string name="stat_cpu">CPU</string>
+    <string name="stat_memory">Memory</string>
+    <string name="stat_battery">Battery</string>
+    <string name="stat_storage">Storage</string>
+    <string name="stat_network">Network</string>
+    <string name="stat_processes">Processes</string>
+    <string name="stat_threads">Threads</string>
+    <string name="stat_uptime">Uptime</string>
+
+    <!-- Live monitor -->
+    <string name="monitor_refresh_rate">Refresh rate</string>
+    <string name="monitor_manual_hint">Manual refresh is on. Tap refresh to take a sample.</string>
+
+    <!-- CPU -->
+    <string name="cpu_title">CPU</string>
+    <string name="cpu_overall">Overall usage</string>
+    <string name="cpu_per_core">Per core</string>
+    <string name="cpu_load_average">Load average</string>
+    <string name="cpu_temperature">Temperature</string>
+    <string name="cpu_core_offline">Offline</string>
+    <string name="cpu_core_label">Core %1$d</string>
+    <string name="cpu_top_consumers">Top consumers</string>
+
+    <!-- Memory -->
+    <string name="memory_title">Memory</string>
+    <string name="memory_used">Used</string>
+    <string name="memory_available">Available</string>
+    <string name="memory_total">Total</string>
+    <string name="memory_cached">Cached</string>
+    <string name="memory_buffers">Buffers</string>
+    <string name="memory_free">Free</string>
+    <string name="memory_swap">Swap</string>
+    <string name="memory_low_threshold">Low-memory threshold</string>
+    <string name="memory_low_warning">The system is under memory pressure and may be killing background processes.</string>
+    <string name="memory_top_consumers">Largest processes</string>
+
+    <!-- Process list -->
+    <string name="processes_title">Processes</string>
+    <string name="processes_search_hint">Search processes</string>
+    <string name="processes_sort">Sort</string>
+    <string name="processes_filter">Filter</string>
+    <string name="processes_count">%1$d processes</string>
+    <string name="processes_incomplete_title">Partial process list</string>
+    <string name="processes_empty">No processes matched.</string>
+    <string name="sort_cpu">CPU usage</string>
+    <string name="sort_memory">Memory</string>
+    <string name="sort_name">Name</string>
+    <string name="sort_pid">Process ID</string>
+    <string name="sort_importance">Importance</string>
+    <string name="filter_all">All</string>
+    <string name="filter_user">User apps</string>
+    <string name="filter_system">System</string>
+    <string name="filter_foreground">Foreground</string>
+    <string name="filter_background">Background</string>
+
+    <!-- Process detail -->
+    <string name="process_detail_title">Process</string>
+    <string name="process_identity">Identity</string>
+    <string name="process_resources">Resources</string>
+    <string name="process_pid">PID</string>
+    <string name="process_ppid">Parent PID</string>
+    <string name="process_uid">UID</string>
+    <string name="process_state">State</string>
+    <string name="process_importance">Importance</string>
+    <string name="process_threads">Threads</string>
+    <string name="process_view_threads">View threads</string>
+    <string name="process_view_tree">View in process tree</string>
+    <string name="process_view_app">Open application</string>
+    <string name="process_gone">This process is no longer running.</string>
+    <string name="process_stop_title">Request stop</string>
+    <string name="process_stop_explain">Android does not allow one application to stop another. ProcessLens can open the system app-info screen, where Android\'s own Force stop control lives.</string>
+    <string name="process_stop_confirm">Open app info</string>
+
+    <!-- Threads -->
+    <string name="threads_title">Threads</string>
+    <string name="threads_count">%1$d threads</string>
+    <string name="threads_empty">No thread information is readable for this process.</string>
+
+    <!-- Process tree -->
+    <string name="tree_title">Process tree</string>
+    <string name="tree_children">%1$d descendants</string>
+    <string name="tree_unavailable">Parent process identifiers are not readable on this device, so a tree cannot be built.</string>
+
+    <!-- Applications -->
+    <string name="apps_title">Applications</string>
+    <string name="apps_search_hint">Search applications</string>
+    <string name="apps_show_system">Show system apps</string>
+    <string name="apps_count">%1$d applications</string>
+    <string name="app_detail_overview">Overview</string>
+    <string name="app_detail_components">Components</string>
+    <string name="app_detail_permissions">Permissions</string>
+    <string name="app_detail_processes">Processes</string>
+    <string name="app_detail_behavior">Behaviour</string>
+    <string name="app_version">Version %1$s</string>
+    <string name="app_target_sdk">Target SDK %1$d</string>
+    <string name="app_min_sdk">Min SDK %1$d</string>
+    <string name="app_installed">Installed %1$s</string>
+    <string name="app_updated">Updated %1$s</string>
+    <string name="app_install_source">Installed by %1$s</string>
+    <string name="app_size">APK size</string>
+    <string name="app_system">System app</string>
+    <string name="app_user">User app</string>
+    <string name="app_disabled">Disabled</string>
+    <string name="app_debuggable">Debuggable</string>
+    <string name="app_no_observations">No observations recorded yet. Behaviour builds up as ProcessLens observes this app.</string>
+    <string name="app_observations_count">Averaged over %1$d samples</string>
+
+    <!-- Components -->
+    <string name="components_activities">Activities</string>
+    <string name="components_services">Services</string>
+    <string name="components_receivers">Receivers</string>
+    <string name="components_providers">Providers</string>
+    <string name="component_exported">Exported</string>
+    <string name="component_not_exported">Not exported</string>
+    <string name="component_disabled">Disabled</string>
+    <string name="component_permission">Guarded by %1$s</string>
+
+    <!-- Permissions -->
+    <string name="permissions_title">Permissions</string>
+    <string name="permissions_granted">Allowed</string>
+    <string name="permissions_denied">Denied</string>
+    <string name="permissions_dangerous">Runtime permissions</string>
+    <string name="permissions_normal">Install-time permissions</string>
+    <string name="permissions_signature">Signature permissions</string>
+    <string name="permissions_change_explain">Android does not allow one app to change another app\'s permissions. ProcessLens can open the system permission screen for this app.</string>
+    <string name="permissions_open_system">Open permission settings</string>
+    <string name="permissions_restricted_explain">Held in the manifest and nominally granted, but restricted by the platform so it does not currently work.</string>
+
+    <!-- Services -->
+    <string name="services_title">Services</string>
+    <string name="services_foreground">Foreground</string>
+    <string name="services_background">Background</string>
+    <string name="services_own_only">Android only reports this application\'s own running services. Shizuku or root access reveals others.</string>
+
+    <!-- Investigation -->
+    <string name="investigate_title">Investigate</string>
+    <string name="investigate_start">Start investigation</string>
+    <string name="investigate_stop">Stop investigation</string>
+    <string name="investigate_name_hint">Name (optional)</string>
+    <string name="investigate_scope">Scope</string>
+    <string name="investigate_scope_all">Everything observable</string>
+    <string name="investigate_scope_app">One application</string>
+    <string name="investigate_duration">Duration</string>
+    <string name="investigate_duration_open">Until I stop it</string>
+    <string name="investigate_duration_minutes">%1$d minutes</string>
+    <string name="investigate_running">Recording</string>
+    <string name="investigate_samples">%1$d samples</string>
+    <string name="investigate_events">%1$d events</string>
+    <string name="investigate_history">Past investigations</string>
+    <string name="investigate_no_history">No investigations recorded yet.</string>
+    <string name="investigate_what_it_does">Records real samples of CPU, memory, battery, network and process state at a fixed interval, then derives a timeline from the differences between them.</string>
+    <string name="investigate_notification_note">Recording runs as a foreground service with a notification, because Android freezes background work. Stopping the notification stops the recording.</string>
+
+    <!-- Summary -->
+    <string name="summary_title">Summary</string>
+    <string name="summary_duration">Duration</string>
+    <string name="summary_highest_cpu">Highest observed CPU</string>
+    <string name="summary_memory_increase">Largest memory increase</string>
+    <string name="summary_restarted">Most frequently restarted</string>
+    <string name="summary_battery_drain">Battery drain</string>
+    <string name="summary_temperature_rise">Temperature rise</string>
+    <string name="summary_network">Network activity</string>
+    <string name="summary_wakelocks">Wake locks</string>
+    <string name="summary_findings">Findings</string>
+    <string name="summary_limitations">What this recording could not see</string>
+    <string name="summary_no_findings">Nothing crossed the configured thresholds during this recording.</string>
+    <string name="summary_correlation_note">These are co-occurrences in time. Sampled observations can show that two things happened together; they cannot establish that one caused the other.</string>
+
+    <!-- Timeline -->
+    <string name="timeline_title">Timeline</string>
+    <string name="timeline_empty">No events were derived from this recording.</string>
+    <string name="timeline_replay">Replay</string>
+    <string name="timeline_at_time">State at %1$s</string>
+    <string name="timeline_evidence">Evidence</string>
+
+    <!-- Battery -->
+    <string name="battery_title">Battery</string>
+    <string name="battery_level">Level</string>
+    <string name="battery_status">Status</string>
+    <string name="battery_health">Health</string>
+    <string name="battery_temperature">Temperature</string>
+    <string name="battery_voltage">Voltage</string>
+    <string name="battery_current">Current</string>
+    <string name="battery_technology">Technology</string>
+    <string name="battery_charge_counter">Charge counter</string>
+    <string name="battery_power_save">Battery saver</string>
+    <string name="battery_per_app">Per-app attribution</string>
+    <string name="battery_per_app_note">Computed by Android\'s own battery statistics service, not estimated by ProcessLens.</string>
+    <string name="battery_no_estimate">ProcessLens does not estimate time remaining. Android does not expose a figure it could report honestly.</string>
+    <string name="battery_wakelocks">Wake locks</string>
+
+    <!-- Network -->
+    <string name="network_title">Network</string>
+    <string name="network_transport">Connection</string>
+    <string name="network_metered">Metered</string>
+    <string name="network_vpn">VPN active</string>
+    <string name="network_received">Received</string>
+    <string name="network_sent">Sent</string>
+    <string name="network_device_wide_note">These are device-wide counters since boot. Android does not attribute them to individual processes.</string>
+    <string name="network_per_app">Per-app usage</string>
+    <string name="network_per_app_needs_access">Per-app network figures need Usage access.</string>
+
+    <!-- Capabilities -->
+    <string name="capabilities_title">What this device allows</string>
+    <string name="capabilities_available">Available</string>
+    <string name="capabilities_restricted">Restricted</string>
+    <string name="capabilities_unlockable">Available with elevated access</string>
+    <string name="capabilities_intro">Measured on this device at runtime, not assumed from its Android version.</string>
+
+    <!-- Access, Shizuku, root -->
+    <string name="access_title">Access</string>
+    <string name="access_normal">Normal application access</string>
+    <string name="access_shizuku">Shizuku</string>
+    <string name="access_root">Root</string>
+    <string name="shizuku_not_installed">Shizuku is not installed.</string>
+    <string name="shizuku_not_running">Shizuku is installed but not running.</string>
+    <string name="shizuku_permission_needed">Shizuku is running. ProcessLens needs permission to use it.</string>
+    <string name="shizuku_permission_denied">Shizuku permission was denied.</string>
+    <string name="shizuku_ready">Shizuku is connected.</string>
+    <string name="shizuku_request">Request Shizuku permission</string>
+    <string name="shizuku_scope_note">Shizuku grants ADB-level access — more than an app has, less than root. It does not grant unrestricted system control.</string>
+    <string name="root_not_available">No root access was found on this device.</string>
+    <string name="root_available">Root access is available.</string>
+    <string name="root_denied">The root request was denied.</string>
+    <string name="root_note">ProcessLens only runs read-only diagnostic commands. It executes no destructive commands, and there is no bulk-stop feature.</string>
+    <string name="commands_used">Commands ProcessLens runs</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search apps, processes, investigations</string>
+    <string name="search_empty">Nothing matched.</string>
+    <string name="search_section_apps">Applications</string>
+    <string name="search_section_processes">Processes</string>
+    <string name="search_section_investigations">Investigations</string>
+    <string name="search_section_settings">Settings</string>
+
+    <!-- Favourites -->
+    <string name="favorites_title">Favourites</string>
+    <string name="favorites_empty">Nothing favourited yet.</string>
+    <string name="favorites_added">Added to favourites</string>
+    <string name="favorites_removed">Removed from favourites</string>
+
+    <!-- Comparison -->
+    <string name="compare_title">Compare</string>
+    <string name="compare_pick">Pick two investigations</string>
+    <string name="compare_note">Comparisons are only meaningful when both recordings ran at the same access level. Differences in what was observable are listed separately from differences in what was measured.</string>
+
+    <!-- Export -->
+    <string name="export_title">Export</string>
+    <string name="export_format">Format</string>
+    <string name="export_note">Exports contain observed system measurements and app metadata only. No credentials, tokens or file contents are included.</string>
+    <string name="export_failed">Export failed</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_accent">Accent colour</string>
+    <string name="settings_dynamic_color">Use wallpaper colours</string>
+    <string name="settings_dynamic_color_summary">Android 12 and later.</string>
+    <string name="settings_glass">Glass effect</string>
+    <string name="settings_reduced_motion">Reduce motion</string>
+    <string name="settings_haptics">Haptic feedback</string>
+    <string name="settings_high_contrast">Higher contrast</string>
+    <string name="settings_monitoring">Monitoring</string>
+    <string name="settings_refresh_rate">Refresh rate</string>
+    <string name="settings_process_multiplier">Process list interval</string>
+    <string name="settings_process_multiplier_summary">Process scanning is the most expensive read, so it runs less often than the gauges.</string>
+    <string name="settings_investigation">Investigation</string>
+    <string name="settings_sample_interval">Sample interval</string>
+    <string name="settings_default_duration">Default duration</string>
+    <string name="settings_cpu_warning">CPU warning threshold</string>
+    <string name="settings_cpu_critical">CPU critical threshold</string>
+    <string name="settings_memory_threshold">Memory increase threshold</string>
+    <string name="settings_temperature_threshold">Battery temperature threshold</string>
+    <string name="settings_auto_detection">Automatic event detection</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_privacy_summary">ProcessLens has no account, no backend and no analytics. It holds no INTERNET permission, so it cannot send anything anywhere.</string>
+    <string name="settings_local_only">Local-only mode</string>
+    <string name="settings_local_only_summary">Always on. Kept visible so the guarantee is auditable.</string>
+    <string name="settings_include_system_export">Include system apps in exports</string>
+    <string name="settings_export_format">Default export format</string>
+    <string name="settings_advanced">Advanced</string>
+    <string name="settings_shizuku">Use Shizuku when available</string>
+    <string name="settings_root">Use root when available</string>
+    <string name="settings_show_own_usage">Show ProcessLens\' own usage</string>
+    <string name="settings_show_system_processes">Show system processes</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_capabilities">Device capabilities</string>
+    <string name="settings_permissions">Permissions and access</string>
+    <string name="settings_data">Recorded data</string>
+    <string name="settings_data_summary">%1$d investigations, %2$d samples</string>
+
+    <!-- Permission requests -->
+    <string name="permission_usage_title">Usage access</string>
+    <string name="permission_usage_explain">Usage access lets ProcessLens see recently-active applications and per-app network figures. Android grants it through a system settings screen, not a prompt.</string>
+    <string name="permission_notification_title">Notifications</string>
+    <string name="permission_notification_explain">Needed only so an investigation can keep recording while you use other apps. Recording works without it, but Android may freeze it sooner.</string>
+    <string name="permission_not_now">Not now</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_subtitle">A process observatory, not a cleaner.</string>
+    <string name="onboarding_point_real">Every figure shown is measured on this device. When Android withholds something, ProcessLens says so instead of filling the gap.</string>
+    <string name="onboarding_point_private">No account, no backend, no analytics. The app has no internet permission at all.</string>
+    <string name="onboarding_point_permissions">Nothing is requested up front. Each screen asks only if you use the part that needs it.</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Something went wrong</string>
+    <string name="error_process_not_found">That process is no longer running.</string>
+    <string name="error_app_not_found">That application is not installed, or is not visible to ProcessLens.</string>
+    <string name="error_investigation_not_found">That investigation no longer exists.</string>
+    <string name="error_read_failed">A system read failed on this device.</string>
+
+    <!-- Accessibility -->
+    <string name="cd_app_logo">ProcessLens logo</string>
+    <string name="cd_back">Navigate up</string>
+    <string name="cd_settings">Open settings</string>
+    <string name="cd_search">Search</string>
+    <string name="cd_favorite_add">Add to favourites</string>
+    <string name="cd_favorite_remove">Remove from favourites</string>
+    <string name="cd_start_investigation">Start investigation</string>
+    <string name="cd_stop_investigation">Stop investigation</string>
+    <string name="cd_expand">Expand</string>
+    <string name="cd_collapse">Collapse</string>
+    <string name="cd_severity">Severity: %1$s</string>
+    <string name="cd_available">Available</string>
+    <string name="cd_unavailable">Not available</string>
+    <string name="cd_chart">Chart of %1$s over time</string>
+    <string name="cd_gauge">%1$s: %2$s</string>
+    <string name="cd_more_options">More options</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The splash background is a literal color rather than a theme attribute
+      because the splash window is created before any Compose theme exists. It
+      matches the dark scheme's background so first frame does not flash.
+    -->
+    <color name="splash_background">#FF07080C</color>
+    <color name="ic_launcher_background">#FF0B0D14</color>
+</resources>

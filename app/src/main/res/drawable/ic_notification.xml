@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Notification small icon.
+
+  Android tints small icons to a single colour and discards everything but the
+  alpha channel, so this is drawn as one flat white shape: an aperture ring with
+  a lens element inside it. Anything with fills of differing colours would come
+  out as an indistinct blob in the status bar.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFFFF">
+
+    <!-- Outer ring -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,2C6.477,2 2,6.477 2,12s4.477,10 10,10 10,-4.477 10,-10S17.523,2 12,2zM12,4.2c4.307,0 7.8,3.493 7.8,7.8s-3.493,7.8 -7.8,7.8S4.2,16.307 4.2,12 7.693,4.2 12,4.2z" />
+
+    <!-- Lens element -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,7.4a4.6,4.6 0,1 0,0 9.2,4.6 4.6,0 0,0 0,-9.2zM12,9.2a2.8,2.8 0,1 1,0 5.6,2.8 2.8,0 0,1 0,-5.6z" />
+
+    <!-- Centre point: the thing under observation -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,10.85a1.15,1.15 0,1 0,0 2.3,1.15 1.15,0 0,0 0,-2.3z" />
+</vector>
