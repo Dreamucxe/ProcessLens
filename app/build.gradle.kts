@@ -43,6 +43,16 @@ android {
         }
     }
 
+    // R8 and resource shrinking are on for release by default. An unminified,
+    // unobfuscated release APK is a shipping defect rather than a build-host
+    // preference, so the default does not bend to the host that happens to be
+    // building. The on-device ARM host this project is often built on cannot run
+    // R8 inside its ~1.8 GB of free RAM, so it opts out in GRADLE_USER_HOME with
+    // `processlens.minify=false`, which keeps the opt-out on that one machine and
+    // leaves every other build — CI included — minified and shrunk.
+    val minifyRelease = (project.findProperty("processlens.minify") as String?)
+        ?.toBooleanStrictOrNull() ?: true
+
     buildTypes {
         debug {
             isMinifyEnabled = false
@@ -50,11 +60,9 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
-            // R8 stays off: full minification is memory-hungry on an on-device ARM
-            // build host with ~1.8 GB free. Keep-rules are retained so it can be
-            // switched on when building on a workstation.
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // Resource shrinking requires code shrinking, so the two move together.
+            isMinifyEnabled = minifyRelease
+            isShrinkResources = minifyRelease
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
