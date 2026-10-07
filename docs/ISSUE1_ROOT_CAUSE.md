@@ -59,7 +59,7 @@ the standard observer — yet Overview renders anyway.
 
 ## Blast radius
 
-**Twelve** ViewModels `combine()` on `observeCapabilities()` and share the identical gate:
+**Eleven** ViewModels `combine()` on `observeCapabilities()` and share the identical gate:
 `AccessViewModel:79`, `AppDetailViewModel:88`, `BatteryViewModel:84`, `CapabilitiesViewModel:69`,
 `CpuViewModel:55`, `InvestigateViewModel:131`, `MemoryViewModel:49`, `NetworkViewModel:85`,
 `OverviewViewModel:88`, `ProcessDetailViewModel:82`, `AppShellViewModel:48`.
@@ -76,6 +76,17 @@ makes every `get()` fall back to the `"Not evaluated on this device."` status, s
 safe to render. A grep for `unknown(` across `app/src` finds two hits: the declaration, and one
 androidTest. **Zero production callers.** `OverviewViewModel.revalidateAccess()` (`:161-166`) — which
 would have broken the deadlock — likewise has zero callers and is dead code.
+
+A second piece of evidence that the placeholder is the intended design: `AppShellViewModel.summarise()`
+already opens with `if (total == 0) return "Checking what this device allows…"`, and `total` is the sum
+of the three `statuses` counts. That branch is reachable *only* from a capabilities object with an empty
+`statuses` map — which is exactly what `unknown()` produces and what nothing was ever emitting. The
+author wrote the handler for this state, wrote the value for this state, and then gated the flow so
+neither could ever be used.
+
+The empty-`statuses` signal is also how a consumer tells "not yet evaluated" apart from "evaluated,
+and this device allows nothing" — a distinction the no-root banner depends on, since `unknown()`
+reports `accessLevel = NORMAL` and `rootState = UNAVAILABLE` before any detection has run.
 
 ## Secondary defects found
 
