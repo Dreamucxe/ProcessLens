@@ -24,7 +24,11 @@ import androidx.compose.material.icons.outlined.ViewList
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -53,6 +57,7 @@ import com.processlens.core.designsystem.ScreenHeader
 import com.processlens.core.designsystem.SectionHeader
 import com.processlens.core.designsystem.SegmentedBar
 import com.processlens.core.designsystem.StatTile
+import com.processlens.core.designsystem.UnresolvedBlock
 import com.processlens.core.designsystem.loadColor
 import com.processlens.domain.model.EventSeverity
 import com.processlens.domain.model.FavoriteType
@@ -128,7 +133,28 @@ fun OverviewScreen(
 
         val system = state.system
         if (system == null) {
-            LoadingBlock()
+            // A spinner is only an honest answer for as long as a sample might still
+            // be arriving silently. Past the deadline — or the moment the pipeline
+            // reports a failure — the screen stops turning and explains itself, with a
+            // retry that actually restarts the sources (issue #1, Sections 42/48).
+            var deadlineElapsed by remember { mutableStateOf(false) }
+            LaunchedEffect(state.loadFailure, state.isRevalidating) {
+                deadlineElapsed = false
+                kotlinx.coroutines.delay(FIRST_SAMPLE_DEADLINE_MILLIS)
+                deadlineElapsed = true
+            }
+            when (state.loadPhase(deadlineElapsed)) {
+                OverviewLoadPhase.WAITING -> LoadingBlock()
+                OverviewLoadPhase.UNRESOLVED -> UnresolvedBlock(
+                    title = unresolvedTitle(state.loadFailure),
+                    explanation = unresolvedExplanation(state.loadFailure),
+                    onRetry = viewModel::revalidateAccess,
+                    isRetrying = state.isRevalidating,
+                    detail = state.loadFailure?.detail,
+                )
+                // Can't happen while system == null, but the when is exhaustive.
+                OverviewLoadPhase.CONTENT -> LoadingBlock()
+            }
             return@Column
         }
 
@@ -138,6 +164,18 @@ fun OverviewScreen(
                     text = message,
                     severity = EventSeverity.WARNING,
                     action = { ActionText("Dismiss", onClick = viewModel::dismissError) },
+                )
+            }
+
+            // Non-blocking: the dashboard is already drawn above and below it. Only
+            // offered once the capability matrix has really been evaluated, so it never
+            // flashes against the startup placeholder, and never on a device already
+            // running through Shizuku or root (Section 42, requirement 6).
+            if (showElevatedAccessNotice(state.capabilities, state.isAccessNoticeDismissed)) {
+                ElevatedAccessNotice(
+                    capabilities = state.capabilities!!,
+                    onOpenAccess = onOpenAccess,
+                    onDismiss = viewModel::dismissAccessNotice,
                 )
             }
 
@@ -278,6 +316,46 @@ private fun RecordingBanner(onOpen: () -> Unit) {
         text = "An investigation is recording. Sampling continues in the background.",
         severity = EventSeverity.INFO,
         action = { ActionText("Open", onClick = onOpen, icon = Icons.Outlined.CenterFocusStrong) },
+    )
+}
+
+/**
+ * The non-blocking "running without elevated access" notice (requirement 6).
+ *
+ * Deliberately an INFO banner, not a warning: normal access is the expected state on
+ * most devices and nothing is broken. It states how many probed capabilities an
+ * elevated shell would improve — a figure that comes from the capability matrix the
+ * device actually produced, never a guess — and offers two outs: open the Access
+ * screen, or dismiss it for this screen's lifetime.
+ */
+@Composable
+private fun ElevatedAccessNotice(
+    capabilities: com.processlens.domain.model.SystemCapabilities,
+    onOpenAccess: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val unlockable = countUnlockable(capabilities)
+    val levels = unlockedByLevels(capabilities)
+        .joinToString(" or ") { it.label }
+        .ifBlank { "Shizuku or root" }
+    NoticeBanner(
+        text = if (unlockable > 0) {
+            "ProcessLens is running without elevated access. $unlockable " +
+                (if (unlockable == 1) "capability" else "capabilities") +
+                " on this device would read more fully with $levels. Everything else is " +
+                "shown; nothing is being withheld."
+        } else {
+            "ProcessLens is running without elevated access. Everything this device " +
+                "exposes to apps is already shown."
+        },
+        severity = EventSeverity.INFO,
+        action = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ActionText("Set up access", onClick = onOpenAccess, icon = Icons.Outlined.Bolt)
+                Spacer(Modifier.width(8.dp))
+                ActionText("Dismiss", onClick = onDismiss)
+            }
+        },
     )
 }
 
