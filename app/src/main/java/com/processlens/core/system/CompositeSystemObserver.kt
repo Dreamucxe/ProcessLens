@@ -40,6 +40,7 @@ class CompositeSystemObserver @Inject constructor(
     private val standard: StandardAndroidObserver,
     private val shizuku: ShizukuShell,
     private val root: RootShell,
+    private val procFs: ProcFsReader,
     private val packages: PackageInspector,
     private val cpuSamplerFactory: CpuSamplerFactory,
     private val samplingPolicy: SamplingPolicy,
@@ -80,15 +81,31 @@ class CompositeSystemObserver @Inject constructor(
     suspend fun applySettings(settings: UserSettings) = routeLock.withLock {
         samplingPolicy.apply(settings)
         val changed = allowShizuku != settings.shizukuEnabled || allowRoot != settings.rootEnabled
+        val rootDisabled = allowRoot && !settings.rootEnabled
         allowShizuku = settings.shizukuEnabled
         allowRoot = settings.rootEnabled
-        if (changed) active = null
+        if (changed) {
+            active = null
+            // A proven grant survives `invalidate`, by design (defect 4). But the
+            // user turning root support *off* is the one case where that proof must
+            // not be carried forward: re-enabling it later has to consult their
+            // superuser manager afresh rather than silently elevating on a grant
+            // recorded under the old setting.
+            if (rootDisabled) root.forgetGrant()
+            // The access level may now differ, so any refusal remembered under the
+            // old route is stale — the next capability refresh re-probes everything.
+            procFs.invalidateRestrictions()
+        }
     }
 
     /** Forces re-resolution — after a permission grant, or a manual refresh. */
     suspend fun invalidate() = routeLock.withLock {
         active = null
         root.invalidate()
+        // A manual refresh is exactly the moment to re-ask what the current access
+        // level can read: a denial cached before the user granted Shizuku or root
+        // would otherwise outlive the grant that lifts it.
+        procFs.invalidateRestrictions()
     }
 
     /**
