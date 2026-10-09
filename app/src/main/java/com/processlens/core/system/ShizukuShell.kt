@@ -9,8 +9,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,6 +29,7 @@ import javax.inject.Singleton
 class ShizukuShell @Inject constructor(
     @ApplicationContext private val context: Context,
     @IoDispatcher private val io: CoroutineDispatcher,
+    private val runner: ProcessRunner,
 ) : ElevatedShell {
 
     override val accessLevel: AccessLevel = AccessLevel.SHIZUKU
@@ -107,7 +106,15 @@ class ShizukuShell @Inject constructor(
      * `Shizuku.newProcess` is a hidden API reached by reflection inside the
      * Shizuku library, so it is wrapped defensively: a signature change in a
      * future Shizuku release degrades this to "unavailable" rather than crashing
-     * the app.
+     * the app. A `null` from [newProcess] — the shell declined to hand back a
+     * process — is passed straight through to [ProcessRunner], which reports it as
+     * a start failure rather than a crash.
+     *
+     * The deadline, the concurrent drain of both pipes and the destroy-on-every-
+     * path teardown all live in [ProcessRunner]. This used to drain stdout to EOF
+     * and only then stderr, which both missed the timeout entirely (the first
+     * blocking `read()` on an unanswered prompt never returned) and could deadlock
+     * against a child filling its stderr pipe. See [ProcessRunner]'s KDoc.
      */
     override suspend fun execute(argv: List<String>, timeoutMillis: Long): ShellResult =
         withContext(io) {
@@ -117,41 +124,8 @@ class ShizukuShell @Inject constructor(
                     accessLevel,
                 )
             }
-            var process: Process? = null
-            try {
-                process = newProcess(argv.toTypedArray())
-                    ?: return@withContext ShellResult.failure(
-                        "Shizuku could not start a process on this device.",
-                        accessLevel,
-                    )
-
-                // Drain both pipes before waiting: a command like `dumpsys
-                // batterystats` produces megabytes, and a full pipe buffer would
-                // deadlock a waitFor() that has not been read from.
-                val out = process.inputStream.readAllTextSafely(MAX_OUTPUT_BYTES)
-                val err = process.errorStream.readAllTextSafely(MAX_ERROR_BYTES)
-
-                val finished = process.waitForTimeout(timeoutMillis)
-                if (!finished) {
-                    process.destroy()
-                    return@withContext ShellResult(
-                        exitCode = -1,
-                        stdout = out,
-                        stderr = "Command timed out after ${timeoutMillis} ms",
-                        accessLevel = accessLevel,
-                    )
-                }
-                ShellResult(process.exitValue(), out, err, accessLevel)
-            } catch (t: Throwable) {
-                ShellResult.failure(
-                    t.message ?: t::class.java.simpleName,
-                    accessLevel,
-                )
-            } finally {
-                try {
-                    process?.destroy()
-                } catch (ignored: Throwable) {
-                }
+            runner.execute(argv, accessLevel, timeoutMillis) { command ->
+                newProcess(command.toTypedArray())
             }
         }
 
@@ -175,70 +149,5 @@ class ShizukuShell @Inject constructor(
             "moe.shizuku.privileged.api",
             "moe.shizuku.manager",
         )
-
-        /**
-         * Caps on captured output. `dumpsys batterystats` can exceed 10 MB on a
-         * device that has been up for weeks; the parsers only need the header
-         * sections, and an unbounded read would be a genuine OOM risk on the
-         * low-memory devices this app targets.
-         */
-        private const val MAX_OUTPUT_BYTES = 4 * 1024 * 1024
-        private const val MAX_ERROR_BYTES = 64 * 1024
-    }
-}
-
-/**
- * Reads a stream to text with a hard byte cap, never throwing. Truncation is
- * marked inline so a parser cannot mistake a cut-off dump for a complete one.
- */
-internal fun InputStream.readAllTextSafely(maxBytes: Int): String = try {
-    use { stream ->
-        val buffer = ByteArrayOutputStream(minOf(maxBytes, 64 * 1024))
-        val chunk = ByteArray(16 * 1024)
-        var total = 0
-        while (true) {
-            val read = stream.read(chunk)
-            if (read <= 0) break
-            val allowed = minOf(read, maxBytes - total)
-            if (allowed > 0) {
-                buffer.write(chunk, 0, allowed)
-                total += allowed
-            }
-            if (total >= maxBytes) {
-                buffer.write("\n[output truncated at $maxBytes bytes]\n".toByteArray())
-                break
-            }
-        }
-        buffer.toString("UTF-8")
-    }
-} catch (t: Throwable) {
-    ""
-}
-
-/**
- * `Process.waitFor(timeout, unit)` is API 26+, which matches this app's minSdk,
- * but the `Process` returned by Shizuku is a remote proxy whose implementation
- * may not honour it. Falling back to polling `exitValue()` keeps a hung command
- * from blocking the caller forever.
- */
-internal fun Process.waitForTimeout(timeoutMillis: Long): Boolean {
-    try {
-        return waitFor(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
-    } catch (t: Throwable) {
-        val deadline = System.currentTimeMillis() + timeoutMillis
-        while (System.currentTimeMillis() < deadline) {
-            try {
-                exitValue()
-                return true
-            } catch (notYet: IllegalThreadStateException) {
-                try {
-                    Thread.sleep(50)
-                } catch (ie: InterruptedException) {
-                    Thread.currentThread().interrupt()
-                    return false
-                }
-            }
-        }
-        return false
     }
 }

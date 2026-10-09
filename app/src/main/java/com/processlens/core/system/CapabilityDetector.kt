@@ -65,6 +65,14 @@ class CapabilityDetector @Inject constructor(
      */
     suspend fun detect(): SystemCapabilities = withContext(io) {
         val api = Build.VERSION.SDK_INT
+        // A capability refresh is the one question "what can this app read *now*",
+        // and it is the only caller that ever asks. A denial is terminal only for
+        // the privileges that earned it, so any remembered refusal from a lower
+        // access level is dropped before the probes below re-attempt every read —
+        // otherwise a freshly granted Shizuku or root session would keep answering
+        // the normal-app denial it cached minutes earlier (see
+        // [ProcFsReader.invalidateRestrictions]).
+        procFs.invalidateRestrictions()
         val shizukuState = shizuku.state()
         val rootState = root.state()
         val access = when {

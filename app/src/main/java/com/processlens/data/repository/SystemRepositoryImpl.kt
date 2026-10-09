@@ -1,5 +1,7 @@
 package com.processlens.data.repository
 
+import android.os.Build
+import com.processlens.core.common.ApplicationScope
 import com.processlens.core.common.DefaultDispatcher
 import com.processlens.core.common.Observed
 import com.processlens.core.system.CompositeSystemObserver
@@ -18,17 +20,20 @@ import com.processlens.domain.repository.SystemRepository
 import com.processlens.domain.repository.SystemState
 import com.processlens.domain.usecase.ProcessListAssembler
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,10 +51,27 @@ class SystemRepositoryImpl @Inject constructor(
     private val observer: CompositeSystemObserver,
     private val settings: SettingsRepository,
     @DefaultDispatcher private val computation: CoroutineDispatcher,
+    @ApplicationScope private val appScope: CoroutineScope,
 ) : SystemRepository {
 
-    private val capabilities = MutableStateFlow<SystemCapabilities?>(null)
+    /**
+     * Seeded with a renderable placeholder rather than `null`.
+     *
+     * This flow feeds a `combine()` in twelve view models, and `combine` publishes
+     * nothing until *every* source has emitted at least once. A `null` seed behind a
+     * `filterNotNull()` therefore held every one of those screens on its initial
+     * state until something happened to call [refreshCapabilities] — which nothing on
+     * the cold-start path did, so Overview showed "Reading system state" until the
+     * user wandered into Settings → Access and incidentally constructed the view model
+     * that refreshes it (issue #1).
+     *
+     * [SystemCapabilities.unknown] exists for exactly this: every `get()` on it falls
+     * back to "Not evaluated on this device", so it renders as honest absence rather
+     * than as fabricated capability.
+     */
+    private val capabilities = MutableStateFlow(SystemCapabilities.unknown(Build.VERSION.SDK_INT))
     private val capabilityLock = Mutex()
+    private val detectionStarted = AtomicBoolean(false)
 
     /**
      * Polls at the user's chosen interval (Section 6: 1/2/5/10 s or manual).
@@ -108,10 +130,34 @@ class SystemRepositoryImpl @Inject constructor(
         lastKnownProcessCount = count
     }
 
+    /**
+     * Emits the placeholder immediately, then the real evaluation when it lands.
+     *
+     * The first collector triggers detection; the result is shared by every later
+     * collector because this repository is a `@Singleton`. Detection runs on the
+     * application scope rather than the collector's, so a screen that leaves the
+     * composition mid-detection does not cancel the work the next screen needs.
+     */
     override fun observeCapabilities(): Flow<SystemCapabilities> =
-        capabilities.asStateFlow().filterNotNull().distinctUntilChanged()
+        capabilities.asStateFlow()
+            .onStart { kickFirstDetection() }
+            .distinctUntilChanged()
+
+    /**
+     * Runs the first capability evaluation once per process, without blocking the
+     * collector. Failure is swallowed deliberately: the placeholder is already on the
+     * wire, so a detection that throws degrades the UI to "not evaluated" instead of
+     * restoring the permanent spinner this replaced.
+     */
+    private fun kickFirstDetection() {
+        if (!detectionStarted.compareAndSet(false, true)) return
+        appScope.launch { runCatching { refreshCapabilities() } }
+    }
 
     override suspend fun refreshCapabilities(): SystemCapabilities = capabilityLock.withLock {
+        // Mark detection as done even when a caller beat the first collector to it,
+        // so the kick cannot queue a redundant second evaluation.
+        detectionStarted.set(true)
         val detected = observer.getCapabilities()
         capabilities.value = detected
         detected

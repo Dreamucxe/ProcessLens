@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -198,6 +201,11 @@ fun ScreenList(
  * Used only for the genuinely unknown-duration first read. Refresh ticks do not show
  * one — a spinner appearing twice a second is worse than a value that updates in
  * place, and it hides the fact that the previous reading is still valid.
+ *
+ * A spinner is a claim that an answer is on its way, and it expires. Issue #1 was this
+ * composable left on screen indefinitely by a caller with no deadline, which is not a
+ * fault of the indicator but of showing it unconditionally: a screen that can reach
+ * "nothing yet" must bound how long it says so and then switch to [UnresolvedBlock].
  */
 @Composable
 fun LoadingBlock(modifier: Modifier = Modifier, label: String = "Reading system state") {
@@ -220,6 +228,89 @@ fun LoadingBlock(modifier: Modifier = Modifier, label: String = "Reading system 
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/**
+ * What a screen shows when a bounded wait ran out (Sections 42, 48).
+ *
+ * The counterpart to [LoadingBlock], and the state this app did not have. Issue #1
+ * presented as a hang, but the reason it survived to a release is that the symptom was
+ * indistinguishable from slowness: the header rendered, the title rendered, the one
+ * thing below them turned forever, and nothing in the UI was capable of saying "this is
+ * not coming". So every screen that can wait for a first reading now has somewhere to
+ * land — what was being waited for, why the waiting stopped, and a control that does
+ * something about it.
+ *
+ * [onRetry] has no default and there is no overload without it. A screen that can reach
+ * this state with no way out is the exact defect this exists to prevent, so the type
+ * system refuses to let a caller build one.
+ *
+ * [detail] goes through [ExpandableDetail] rather than into [explanation], keeping the
+ * Section 48 split intact: prose a user can act on first, the mechanical cause behind a
+ * disclosure for the reader who wants it.
+ */
+@Composable
+fun UnresolvedBlock(
+    title: String,
+    explanation: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    retryLabel: String = "Try again",
+    isRetrying: Boolean = false,
+    detail: String? = null,
+    icon: ImageVector = Icons.Outlined.Info,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 120.dp)
+            .padding(vertical = 12.dp)
+            .semantics { contentDescription = title },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            modifier = Modifier.size(Dimens.iconLarge),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            explanation,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(12.dp))
+        if (isRetrying) {
+            // The control stays put and goes busy rather than being swapped for a bare
+            // spinner. Replacing it is what makes a retry that is working look like a
+            // retry that did nothing, which is the complaint this whole state answers.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(14.dp),
+                    strokeWidth = 2.dp,
+                    color = ProcessLensTheme.accent.base,
+                )
+                Spacer(Modifier.width(8.dp))
+                ActionText(retryLabel, onClick = onRetry, enabled = false)
+            }
+        } else {
+            ActionText(retryLabel, onClick = onRetry, icon = Icons.Outlined.Refresh)
+        }
+        if (!detail.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            ExpandableDetail(summary = "Technical details", detail = detail)
+        }
     }
 }
 
