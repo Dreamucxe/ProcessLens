@@ -1,5 +1,7 @@
 package com.processlens.core.system
 
+import android.util.Log
+import com.processlens.core.common.AccessLevel
 import com.processlens.core.common.DataSource
 import com.processlens.core.common.Observed
 import com.processlens.core.common.Precision
@@ -21,10 +23,26 @@ import java.io.File
  * All calls are blocking file I/O and must run on an IO dispatcher — the caller
  * is responsible for that, which keeps this class a pure, testable adapter with
  * an injectable [root] for unit tests.
+ *
+ * ## Device-wide metrics are read once per refusal, not once per sample
+ *
+ * A refused read is already terminal here — [readFile] maps a denial to an
+ * [Observed.Restricted] and nothing in this class retries — but *terminal* and
+ * *remembered* are different things, and only the first was true. The sampler
+ * re-asks every one to ten seconds, so a device whose policy denies `/proc/stat`
+ * or `/sys/class/thermal` answered the same denial thousands of times per session
+ * and wrote an audit line for each.
+ *
+ * The six device-wide metrics below therefore go through [restrictions], which
+ * hands back the first refusal without touching the filesystem again. Per-process
+ * reads deliberately do **not**: their keys would be paths containing a PID, the
+ * map would grow without bound on a busy device, and — worse — a PID the kernel
+ * recycles would inherit the verdict passed on the process that used to own it.
  */
 class ProcFsReader(
     private val root: File = File("/proc"),
     private val sysRoot: File = File("/sys"),
+    private val restrictions: RestrictionCache = RestrictionCache(),
 ) {
 
     /**
@@ -42,8 +60,8 @@ class ProcFsReader(
      * Aggregate jiffy counters from the first line of `/proc/stat`.
      * Returns [Observed.Restricted] on the very common SELinux denial.
      */
-    fun readSystemCpuTimes(): Observed<CpuTimes> = readFirstLine(File(root, "stat")).let { line ->
-        when (line) {
+    fun readSystemCpuTimes(): Observed<CpuTimes> = sessionMemo(METRIC_PROC_STAT) {
+        when (val line = readFirstLine(File(root, "stat"))) {
             is Observed.Value -> parseCpuLine(line.value)
                 ?.let { Observed.of(it, DataSource.PROC_FS) }
                 ?: Observed.Failed("Could not parse /proc/stat")
@@ -52,10 +70,15 @@ class ProcFsReader(
         }
     }
 
-    /** Per-core lines (`cpu0`, `cpu1`, …) from `/proc/stat`. */
-    fun readPerCoreCpuTimes(): Observed<List<CpuTimes>> {
-        val text = readFile(File(root, "stat"))
-        return when (text) {
+    /**
+     * Per-core lines (`cpu0`, `cpu1`, …) from `/proc/stat`.
+     *
+     * Shares [METRIC_PROC_STAT] with [readSystemCpuTimes]: the two parse different
+     * things out of the same file, and a policy that refuses the file refuses it for
+     * both, so one memo and one log line cover the pair.
+     */
+    fun readPerCoreCpuTimes(): Observed<List<CpuTimes>> = sessionMemo(METRIC_PROC_STAT) {
+        when (val text = readFile(File(root, "stat"))) {
             is Observed.Value -> {
                 val cores = text.value.lineSequence()
                     .filter { it.startsWith("cpu") && it.length > 3 && it[3].isDigit() }
@@ -96,8 +119,8 @@ class ProcFsReader(
         )
     }
 
-    fun readLoadAverage(): Observed<LoadAverage> {
-        return when (val line = readFirstLine(File(root, "loadavg"))) {
+    fun readLoadAverage(): Observed<LoadAverage> = sessionMemo(METRIC_LOADAVG) {
+        when (val line = readFirstLine(File(root, "loadavg"))) {
             is Observed.Value -> {
                 val p = line.value.trim().split(WHITESPACE)
                 val one = p.getOrNull(0)?.toFloatOrNull()
@@ -117,8 +140,8 @@ class ProcFsReader(
     // ------------------------------------------------------------------- memory
 
     /** Parses `/proc/meminfo` into its KiB key/value pairs. */
-    fun readMemInfo(): Observed<Map<String, Long>> {
-        return when (val text = readFile(File(root, "meminfo"))) {
+    fun readMemInfo(): Observed<Map<String, Long>> = sessionMemo(METRIC_MEMINFO) {
+        when (val text = readFile(File(root, "meminfo"))) {
             is Observed.Value -> {
                 val map = HashMap<String, Long>(64)
                 text.value.lineSequence().forEach { line ->
@@ -147,9 +170,15 @@ class ProcFsReader(
      * PIDs currently visible in `/proc`. Under `hidepid=2` (API 29+) this is just
      * our own process; the caller compares the result against the expected count
      * to decide whether a full process list is possible at all.
+     *
+     * Note what is and is not memoised: a refusal to list `/proc` at all is a
+     * device-wide fact worth remembering, while a *short* list is a successful read
+     * and is taken again every sample, because processes start and stop.
      */
-    fun listVisiblePids(): Observed<List<Int>> = Observed.catching(DataSource.PROC_FS) {
-        root.list()?.mapNotNull { it.toIntOrNull() }?.sorted() ?: emptyList()
+    fun listVisiblePids(): Observed<List<Int>> = sessionMemo(METRIC_PROC_LISTING) {
+        Observed.catching(DataSource.PROC_FS) {
+            root.list()?.mapNotNull { it.toIntOrNull() }?.sorted() ?: emptyList()
+        }
     }
 
     /**
@@ -172,6 +201,26 @@ class ProcFsReader(
 
     companion object {
         private val WHITESPACE = Regex("\\s+")
+
+        private const val TAG = "ProcessLens"
+
+        /**
+         * Metric names for the session memo (see [RestrictionCache]).
+         *
+         * Deliberately the canonical device paths rather than the injected [root] and
+         * [sysRoot]: a test pointing the reader at a temporary directory memoises and
+         * logs under the same names a phone does, and the log line stays readable by
+         * someone who has only the bug report in front of them.
+         *
+         * One key per *metric*, which is not always one key per file — the two
+         * `/proc/stat` readers share theirs — and never a key containing a PID.
+         */
+        const val METRIC_PROC_STAT = "/proc/stat"
+        const val METRIC_LOADAVG = "/proc/loadavg"
+        const val METRIC_MEMINFO = "/proc/meminfo"
+        const val METRIC_PROC_LISTING = "/proc process listing"
+        const val METRIC_CPUFREQ = "/sys cpufreq nodes"
+        const val METRIC_THERMAL = "/sys thermal zones"
 
         /**
          * Parses one `/proc/<pid>/stat` line. Exposed on the companion because the
@@ -280,8 +329,16 @@ class ProcFsReader(
      * Per-core scaling frequencies from `/sys/devices/system/cpu/cpuN/cpufreq`.
      * An offline core has no readable `scaling_cur_freq`, which is reported as
      * `isOnline = false` rather than 0 Hz.
+     *
+     * Three files per core, so an eight-core device that hides cpufreq was paying
+     * twenty-four refused opens every sample. There is no public API for core
+     * frequency on any API level, so sysfs is the only path — which makes
+     * remembering the refusal the only saving available.
      */
-    fun readCoreFrequencies(coreCount: Int): Observed<List<CoreFrequency>> {
+    fun readCoreFrequencies(coreCount: Int): Observed<List<CoreFrequency>> =
+        sessionMemo(METRIC_CPUFREQ) { scanCoreFrequencies(coreCount) }
+
+    private fun scanCoreFrequencies(coreCount: Int): Observed<List<CoreFrequency>> {
         val out = ArrayList<CoreFrequency>(coreCount)
         var anyReadable = false
         for (i in 0 until coreCount) {
@@ -309,11 +366,32 @@ class ProcFsReader(
      * First plausible thermal zone reading. Zone naming is entirely OEM-specific,
      * so zones are filtered by type name and the value is treated as milli-degrees
      * when it is implausibly large for deci-degrees.
+     *
+     * This is the walk the bug report caught denying itself fifty minutes of audit
+     * lines, and it is the one metric here with a public alternative — except that
+     * `PowerManager`'s thermal API reports a throttling severity rather than a
+     * temperature, so it cannot answer this question. [StandardAndroidObserver]
+     * consults it for what it *can* honestly say when this comes back refused.
      */
-    fun readCpuTemperature(): Observed<Int> {
-        val zones = File(sysRoot, "class/thermal").listFiles()
+    fun readCpuTemperature(): Observed<Int> = sessionMemo(METRIC_THERMAL) { scanThermalZones() }
+
+    private fun scanThermalZones(): Observed<Int> {
+        val thermalRoot = File(sysRoot, "class/thermal")
+        val zones = thermalRoot.listFiles()
             ?.filter { it.name.startsWith("thermal_zone") }
-            ?: return Observed.notPresent("No thermal zones exposed")
+            ?: return if (thermalRoot.exists()) {
+                // `listFiles()` answers null for "there is no such directory" and for
+                // "you may not look in it" alike. Where the directory is visible but
+                // unlistable the second is what happened, and that is a restriction an
+                // elevated shell lifts — reporting it as "this device has no thermal
+                // zones" would describe the wrong device.
+                Observed.platform(
+                    "${thermalRoot.path} exists but cannot be listed by this app",
+                    AccessLevel.SHIZUKU,
+                )
+            } else {
+                Observed.notPresent("No thermal zones exposed")
+            }
 
         for (zone in zones) {
             val type = readFirstLine(File(zone, "type")).let {
@@ -337,6 +415,43 @@ class ProcFsReader(
         }
         return Observed.notPresent("No CPU thermal zone could be read")
     }
+
+    // -------------------------------------------------------- terminal refusals
+
+    /**
+     * Runs [read] unless [key] is already known to be refused, and spends that
+     * metric's single log line the first time it is.
+     *
+     * The log line is composed here rather than relayed: `detail` is text this class
+     * wrote, so no kernel audit string, shell output or raw `errno` message reaches
+     * logcat through it (Section 48). `Log.i` rather than `Log.w` because a
+     * restriction is documented platform behaviour, not a fault — the same
+     * distinction the UI draws with a padlock instead of a warning triangle.
+     */
+    private fun <T> sessionMemo(key: String, read: () -> Observed<T>): Observed<T> {
+        val outcome = restrictions.attempt(key, read)
+        if (outcome is Observed.Restricted && restrictions.shouldAnnounce(key)) {
+            Log.i(
+                TAG,
+                "$key is not readable at this access level and will not be re-read " +
+                    "this session: ${outcome.detail}",
+            )
+        }
+        return outcome
+    }
+
+    /**
+     * Forgets every remembered refusal.
+     *
+     * Must be called whenever the app's access level may have changed, because a
+     * denial is permanent only for the privileges that earned it: the same
+     * `/proc/stat` that is refused to a normal app is read freely through a root or
+     * Shizuku shell (Sections 27, 28). [StandardAndroidObserver.getCapabilities]
+     * calls this before it probes, which covers both the first evaluation and every
+     * re-evaluation forced by a grant, because a capability refresh is the only
+     * thing that ever asks what this app can read *now*.
+     */
+    fun invalidateRestrictions() = restrictions.clear()
 
     // -------------------------------------------------------------------- utils
 
